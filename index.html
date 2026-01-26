@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Server IoT - Relay Control Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microchip"></i> IoT Relay Control Dashboard</h1>
+            <p class="subtitle">ESP32 + 4-Channel Relay (Colleague's Configuration)</p>
+            
+            <div class="relay-info">
+                <h3><i class="fas fa-exchange-alt"></i> Relay Pin Mapping (Active LOW):</h3>
+                <div class="relay-channels">
+                    <div class="channel">
+                        <span class="channel-number">CH1</span>
+                        <span class="channel-device">DHT22 Power</span>
+                        <span class="channel-pin">GPIO 13</span>
+                        <span class="channel-state">Relay ON = LOW</span>
+                    </div>
+                    <div class="channel">
+                        <span class="channel-number">CH2</span>
+                        <span class="channel-device">LDR Power</span>
+                        <span class="channel-pin">GPIO 14</span>
+                        <span class="channel-state">Relay ON = LOW</span>
+                    </div>
+                    <div class="channel">
+                        <span class="channel-number">CH3</span>
+                        <span class="channel-device">Buzzer Control</span>
+                        <span class="channel-pin">GPIO 27</span>
+                        <span class="channel-state">Relay ON = LOW</span>
+                    </div>
+                    <div class="channel">
+                        <span class="channel-number">CH4</span>
+                        <span class="channel-device">Ultrasonic Power</span>
+                        <span class="channel-pin">GPIO 26</span>
+                        <span class="channel-state">Relay ON = LOW</span>
+                    </div>
+                </div>
+                
+                <div class="sensor-info">
+                    <h4><i class="fas fa-sensor"></i> Sensor Pin Mapping:</h4>
+                    <div class="sensor-pins">
+                        <div class="pin-item">
+                            <span class="pin-label">DHT22 Data:</span>
+                            <span class="pin-number">GPIO 25</span>
+                        </div>
+                        <div class="pin-item">
+                            <span class="pin-label">LDR Analog:</span>
+                            <span class="pin-number">GPIO 34 (ADC1_CH6)</span>
+                        </div>
+                        <div class="pin-item">
+                            <span class="pin-label">HC-SR04 Trig:</span>
+                            <span class="pin-number">GPIO 18</span>
+                        </div>
+                        <div class="pin-item">
+                            <span class="pin-label">HC-SR04 Echo:</span>
+                            <span class="pin-number">GPIO 19</span>
+                        </div>
+                        <div class="pin-item">
+                            <span class="pin-label">Buzzer Direct:</span>
+                            <span class="pin-number">GPIO 23</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- DHT22 Card -->
+            <div class="card" id="dht-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-thermometer-half"></i>
+                        <span>DHT22</span>
+                        <span class="relay-indicator" id="dht-relay-indicator">RELAY CH1</span>
+                    </div>
+                    <div class="status-badge status-off" id="dht-status">RELAY OFF</div>
+                </div>
+                
+                <div class="sensor-data">
+                    <div class="data-item">
+                        <div class="data-label">
+                            <i class="fas fa-temperature-high"></i>
+                            <span>Suhu</span>
+                            <span class="pin-label-small">GPIO 25</span>
+                        </div>
+                        <span class="data-value" id="temperature">--</span>
+                        <span class="data-unit">°C</span>
+                        <div class="relay-status">
+                            <i class="fas fa-bolt"></i>
+                            <span>Power: <b id="dht-power-status">OFF</b></span>
+                            <span class="gpio-info-small">GPIO 13</span>
+                        </div>
+                    </div>
+                    
+                    <div class="data-item">
+                        <div class="data-label">
+                            <i class="fas fa-tint"></i>
+                            <span>Kelembaban</span>
+                        </div>
+                        <span class="data-value" id="humidity">--</span>
+                        <span class="data-unit">%</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-on" onclick="controlRelay('dht', 'on')">
+                        <i class="fas fa-toggle-on"></i> POWER ON
+                    </button>
+                    <button class="btn btn-off" onclick="controlRelay('dht', 'off')">
+                        <i class="fas fa-toggle-off"></i> POWER OFF
+                    </button>
+                </div>
+                
+                <div class="gpio-info">
+                    <i class="fas fa-plug"></i> Relay GPIO 13 | Active LOW | Sensor GPIO 25
+                </div>
+            </div>
+
+            <!-- LDR Card -->
+            <div class="card" id="ldr-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-sun"></i>
+                        <span>LDR</span>
+                        <span class="relay-indicator" id="ldr-relay-indicator">RELAY CH2</span>
+                    </div>
+                    <div class="status-badge status-off" id="ldr-status">RELAY OFF</div>
+                </div>
+                
+                <div class="sensor-data">
+                    <div class="data-item">
+                        <div class="data-label">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Status Cahaya</span>
+                            <span class="pin-label-small">GPIO 34</span>
+                        </div>
+                        <div class="status-text status-offline" id="ldr-value">OFFLINE</div>
+                        <div class="relay-status">
+                            <i class="fas fa-bolt"></i>
+                            <span>Power: <b id="ldr-power-status">OFF</b></span>
+                            <span class="gpio-info-small">GPIO 14</span>
+                        </div>
+                    </div>
+                    
+                    <div class="data-item">
+                        <div class="data-label">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Nilai Analog</span>
+                        </div>
+                        <span class="data-value" id="ldr-raw">--</span>
+                        <span class="data-unit">(0-4095)</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-on" onclick="controlRelay('ldr', 'on')">
+                        <i class="fas fa-toggle-on"></i> POWER ON
+                    </button>
+                    <button class="btn btn-off" onclick="controlRelay('ldr', 'off')">
+                        <i class="fas fa-toggle-off"></i> POWER OFF
+                    </button>
+                </div>
+                
+                <div class="gpio-info">
+                    <i class="fas fa-plug"></i> Relay GPIO 14 | Active LOW | Sensor GPIO 34
+                </div>
+            </div>
+
+            <!-- HC-SR04 Card -->
+            <div class="card" id="ultrasonic-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-ruler-vertical"></i>
+                        <span>HC-SR04</span>
+                        <span class="relay-indicator" id="ultrasonic-relay-indicator">RELAY CH4</span>
+                    </div>
+                    <div class="status-badge status-off" id="ultrasonic-status">RELAY OFF</div>
+                </div>
+                
+                <div class="sensor-data">
+                    <div class="data-item">
+                        <div class="data-label">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            <span>Jarak</span>
+                            <span class="pin-label-small">GPIO 18/19</span>
+                        </div>
+                        <span class="data-value" id="distance">--</span>
+                        <span class="data-unit">cm</span>
+                        <div class="relay-status">
+                            <i class="fas fa-bolt"></i>
+                            <span>Power: <b id="ultrasonic-power-status">OFF</b></span>
+                            <span class="gpio-info-small">GPIO 26</span>
+                        </div>
+                    </div>
+                    
+                    <div class="distance-warning" id="distance-warning">
+                        <i class="fas fa-info-circle"></i> Threshold: <input type="number" id="threshold" value="50" min="1" max="200"> cm
+                        <button class="btn-small" onclick="setThreshold()">Set</button>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-on" onclick="controlRelay('ultrasonic', 'on')">
+                        <i class="fas fa-toggle-on"></i> POWER ON
+                    </button>
+                    <button class="btn btn-off" onclick="controlRelay('ultrasonic', 'off')">
+                        <i class="fas fa-toggle-off"></i> POWER OFF
+                    </button>
+                </div>
+                
+                <div class="gpio-info">
+                    <i class="fas fa-plug"></i> Relay GPIO 26 | Active LOW | Trig 18 / Echo 19
+                </div>
+            </div>
+
+            <!-- Buzzer Card -->
+            <div class="card" id="buzzer-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-volume-up"></i>
+                        <span>Buzzer</span>
+                        <span class="relay-indicator" id="buzzer-relay-indicator">RELAY CH3</span>
+                    </div>
+                    <div class="status-badge status-off" id="buzzer-status">RELAY OFF</div>
+                </div>
+                
+                <div class="sensor-data">
+                    <div class="data-item">
+                        <div class="data-label">
+                            <i class="fas fa-bell"></i>
+                            <span>Status Buzzer</span>
+                            <span class="pin-label-small">GPIO 23</span>
+                        </div>
+                        <div class="buzzer-visual">
+                            <div class="buzzer-icon" id="buzzer-icon">
+                                <i class="fas fa-volume-mute"></i>
+                            </div>
+                            <p class="buzzer-logic">Buzzer aktif jika:<br>1. Relay ON (Manual) OR<br>2. Relay US ON + Jarak ≤ Threshold</p>
+                        </div>
+                        <div class="relay-status">
+                            <i class="fas fa-bolt"></i>
+                            <span>Relay: <b id="buzzer-relay-status">OFF</b></span>
+                            <span class="gpio-info-small">GPIO 27</span>
+                        </div>
+                    </div>
+                    
+                    <div class="auto-mode">
+                        <i class="fas fa-robot"></i>
+                        <span>Mode: <b id="buzzer-mode">AUTO</b> | Direct GPIO 23</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-on" onclick="controlRelay('buzzer', 'on')">
+                        <i class="fas fa-toggle-on"></i> RELAY ON
+                    </button>
+                    <button class="btn btn-off" onclick="controlRelay('buzzer', 'off')">
+                        <i class="fas fa-toggle-off"></i> RELAY OFF
+                    </button>
+                </div>
+                
+                <div class="gpio-info">
+                    <i class="fas fa-plug"></i> Relay GPIO 27 | Active LOW | Direct GPIO 23
+                </div>
+            </div>
+        </div>
+
+        <div class="connection-status">
+            <div class="connection-item" id="wifi-status">
+                <i class="fas fa-wifi"></i>
+                <span>WiFi: <b id="wifi-status-text">TRAINER_LOGIKA</b></span>
+            </div>
+            <div class="connection-item" id="esp32-status">
+                <i class="fas fa-microchip"></i>
+                <span>ESP32: <b id="esp32-status-text">192.168.4.1</b></span>
+            </div>
+            <div class="connection-item" id="last-update">
+                <i class="fas fa-clock"></i>
+                <span>Terakhir update: <b>--:--:--</b></span>
+            </div>
+        </div>
+
+        <div class="server-status server-online" id="server-status">
+            <i class="fas fa-server"></i>
+            <span>Mode: REAL ESP32 CONNECTED</span>
+        </div>
+    </div>
+
+    <footer>
+        <p>Ravelware × Sigproc Brawijaya | ESP32 Relay Control System</p>
+        <p>IP ESP32: <code id="esp32-ip">192.168.4.1</code> | Password: <code>12345678</code></p>
+    </footer>
+
+<!-- Connection Test Panel -->
+<div class="connection-test" style="position: fixed; top: 10px; right: 10px; background: #1e293b; padding: 15px; border-radius: 10px; border: 2px solid #334155; z-index: 1000;">
+
+    <h4 style="margin-bottom: 10px; color: #60a5fa;">Connection Test</h4>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="testConnection('data')" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 5px;">Test /data</button>
+        <button onclick="testConnection('r1on')" style="padding: 5px 10px; background: #10b981; color: white; border: none; border-radius: 5px;">Test Relay</button>
+    </div>
+    <div id="test-result" style="font-size: 12px; color: #94a3b8;">Click to test</div>
+</div>
+
+    <script>
+        async function testConnection(endpoint) {
+    const testResult = document.getElementById('test-result');
+    testResult.innerHTML = 'Testing...';
+    testResult.style.color = '#f59e0b';
+    
+    try {
+        const startTime = Date.now();
+        const response = await fetch(`http://192.168.4.1/${endpoint}`, {
+            signal: AbortSignal.timeout(5000)
+        });
+        const responseTime = Date.now() - startTime;
+        
+        if (response.ok) {
+            const data = await response.json();
+            testResult.innerHTML = `✅ OK (${responseTime}ms)<br>${JSON.stringify(data)}`;
+            testResult.style.color = '#10b981';
+            }
+        else {
+            testResult.innerHTML = `❌ HTTP ${response.status}`;
+            testResult.style.color = '#ef4444';
+            }
+        }
+    catch (error) {
+        testResult.innerHTML = `❌ Error: ${error.message}`;
+        testResult.style.color = '#ef4444';
+        }
+    }
+    </script>
+</body>
+</html>
